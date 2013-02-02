@@ -29,7 +29,7 @@ Kyoshi attaches to your http object just like Socket.io does. `app` is your http
     userCount--;
   }
 ```
-Any function exposed on the `exports` object is accessable to the client. The connect and disconnect functions are used by kyoshi to tell the file when someone connects and disconnects from the file. They both take an id. This is the unique id for the connection.
+Any function exposed on the `exports` object is accessable to the client. The `connect` and `disconnect` functions are used by kyoshi to tell the file when someone connects and disconnects from the file. They both take an id. This is the unique id for the connection.
 ###Client Side
 ```html
   <html>
