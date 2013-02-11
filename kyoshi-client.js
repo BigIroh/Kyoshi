@@ -23,6 +23,7 @@
 //Kyoshi-client.js
 
 var kyoshi = function () {
+    //connect to the host
     var socket = io.connect(location.protocol+'//'+location.hostname);
     var id = 0;
     return function (file, callback) {
@@ -36,11 +37,13 @@ var kyoshi = function () {
             exports.on = function(name, callback) {
                 socket.on(name, callback);
             }
+            //Build dummy functions from list of functions exposed in the user's js file
             options.forEach(function (i) {
                 exports[i] = function () {
                     var params = {};
                     Array.prototype.slice.call(arguments).forEach(function (argument, j) {
                         if(typeof argument === 'function') {
+                            //build a function with a unique id to be used by the server as a callback
                             params[j] = {
                                 type: 'function',
                                 id: id 
@@ -57,6 +60,7 @@ var kyoshi = function () {
                             }
                         }
                     });
+                    //emit the function name and arguments back to the server
                     socket.emit(file+i, params);
                 };
             });

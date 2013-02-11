@@ -23,6 +23,7 @@
 //Kyoshi-node.js
 var path = require('path');
 var listen = function (app, contentPath) {
+    //Adds a listener at the begining of the listener list to intercept the request to '/kyoshi.js' and serve up its version.
     var listeners = app.listeners('request').splice(0);
     app.removeAllListeners('request');
     app.on('request', function (req, res) {
@@ -34,24 +35,28 @@ var listen = function (app, contentPath) {
             stream.on('end', function () {
                 res.end();
             });
-            return;
         }
-        listeners.forEach(function (listener) {
-            listener.call(app, req, res);
-        });
     });
+    listeners.forEach(function (listener) {
+        app.on('request', listener);
+    });
+    //Start the websocket listener
     var io = require('socket.io').listen(app, {log: false});
     io.sockets.on('connection', function (socket) {
+        //wait for the initial connection
         socket.on('__init', function (filename) {
+            //join a room corresponding to the file
             socket.join(filename);
             if(filename.match(/^.+\.js$/)) {
                 try {
-                    console.log(path.join(process.cwd(),contentPath,filename));
+                    //load the user's js file as a module so its preserved in the cache
                     var module = require(path.join(process.cwd(),contentPath,filename));
                     var exports = Object.getOwnPropertyNames(module);
+                    //give it access to sockets accessing the file
                     module.sockets = function () {
                         return io.sockets.in(filename);
                     };
+                    //build the function to catch the messages from the client and handle the function calls
                     exports.forEach(function (value) {
                         socket.on(filename+value, function (args) {
                             var params = [];
